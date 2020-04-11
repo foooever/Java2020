@@ -11,5 +11,8 @@ Reinitialized existing Git repository in ***/.git/
 
 $ git add file.xx //Step1.添加文件到Repository
 $ git commit -m "recorder op" //Step.2告诉Git将文件提交
+
+$ git status //掌握仓库的状态 修改状态
+$ git diff Git.md //看具体修改内容
 ~~~
 
