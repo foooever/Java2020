@@ -23,7 +23,7 @@ $ git reset --hard commit id //按id回退到之前
 $ git reflog //记录命令
 ```
 * 工作区 **Working Directory**\
-![working directory](https://github.com/foooever/Java2020/master/Git/01.jfif)\
+![working directory](https://github.com/foooever/figure/blob/master/Java2020/%E5%9F%BA%E7%A1%80/01.jfif)\
 `git add`是将文件添加进`stage`中，`git commit`将所有暂存区的内容提交到当前分支
 可以用`$ git diff HEAD -- Git.md`查看工作区和版本库中最新版本的区别
 ```
