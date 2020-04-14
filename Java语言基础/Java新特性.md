@@ -1,4 +1,10 @@
 ## JDK1.8新特性
+<!-- GFM-TOC -->
+* [函数式接口](1函数式接口)
+* [Lambda表达式](2Lambda表达式)
+	* [表达式语法](21表达式语法)
+	* [方法引用](22方法引用)
+<!-- GFM-TOC -->
 ### 1.函数式接口
 函数式接口`@FunctionInterface`：是指只有一个抽象方法（可以多个非抽象方法如static方法）的接口，可以隐式的转化为`Lambda`表达式。
 如`java.lang.Runnable, java.util.Comparator`。
