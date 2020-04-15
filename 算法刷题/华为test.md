@@ -143,5 +143,319 @@ public class Main {
 }
 //Input:0xA
 Output:10
+```
+### 6.质数因子
+输入一个正整数，按照从小到大的顺序输出它的所有质因子（如180的质因子为2 2 3 3 5 ）
+最后一个数后面也要有空格。
+思路：暴力递归。
+```Java
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        long tmp = in.nextLong();
+        System.out.println(new Main().getResult(tmp));
+    }
+    public String getResult(long ulDataInput) {
+        String res = "";
+        for (long i = ulDataInput / 2; i > 1; i--) { //先处理大因子以避免重复计算
+            if (ulDataInput % i == 0 && isValid(i)) {
+                res = i + " ";
+                ulDataInput /= i;
+                break;
+            }
+        }
+        return res == "" ? ulDataInput + " " : getResult(ulDataInput) + res;
+    }
+    public boolean isValid(long num) { //判断是否为质数（素数）
+        boolean flag = true;
+        for (long i = 2; i <= num / 2; i++) {
+            if (num % i == 0) {
+                flag = false;
+                break;
+            }
+        }
+        return flag;
+    }
+}//input 180
+output 2 2 3 3 5
+```
+### 7.取近似值
+写出一个程序，接受一个正浮点数值，输出该数值的近似整数值。如果小数点后数值大于等
+于5,向上取整；小于5，则向下取整。
+```Java
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        double input = in.nextDouble();
+        int ret = (int)input; //显式转换是向下取整
+        ret += input - ret >= 0.5 ? 1 : 0;
+        System.out.println(ret);
+    }
+}
+```
+### 8.合并表记录
+数据表记录包含表索引和数值（int范围的整数），请对表索引相同的记录进行合并，
+即将相同索引的数值进行求和运算，输出按照key值升序进行输出。
+思路：采用`TreeMap`的`SortedMap`进行存储。其复杂度`O(NlongN)?`其中`contains()`复杂度`O(logN)?`。
+```Java
+import java.util.Scanner;
+import java.util.TreeMap;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        TreeMap<Integer, Integer> treeMap = new TreeMap<>((o1, o2) -> o1.compareTo(o2));
+        for (int i = 0; i < n; i++) {
+            int key = in.nextInt();
+            int value = in.nextInt();
+            if (!treeMap.containsKey(key)) {
+                treeMap.put(key, value);
+            } else {
+                treeMap.put(key, treeMap.get(key) + value);
+            }
+        }
+        for (int i : treeMap.keySet()) { //遍历
+            System.out.println(i+" "+treeMap.get(i));
+        }
+    }
+}//input
+4
+0 1
+0 2
+1 2
+3 4
+//output
+0 3
+1 2
+3 4
+```
+### 9.提取不重复整数
+输入一个int型整数，按照从右向左的阅读顺序，返回一个不含重复数字的新的整数。
+```Java
+import java.util.Scanner;
+import java.util.Set;
+import java.util.HashSet;
 
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        String str = in.next();
+        Set<Character> set = new HashSet<>();
+        String ret = "";
+        for (int i = str.length() - 1; i >= 0; i--) {
+            if (!set.contains(str.charAt(i))) {
+                ret += str.charAt(i);
+                set.add(str.charAt(i));
+            }
+        }
+        System.out.println(Integer.parseInt(ret));
+        
+        in.close();
+    }
+}
+```
+### 10.字符个数统计
+编写一个函数，计算字符串中含有的不同字符的个数。字符在ACSII码范围内
+(0~127)，换行表示结束符，不算在字符里。不在范围内的不作统计。
+思路：空间换时间，计数；也可以用`Set`存储。
+```Java
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int[] buket = new int[127];
+        String str = in.next();
+        for (int i = 0; i < str.length(); i++) {
+            buket[str.charAt(i)-0]++;
+        }
+        int sum = 0;
+        for(int i : buket) {
+            if (i > 0) {
+                sum++;
+            }
+        }
+        System.out.println(sum);
+    }
+}//input abc
+output 3
+```
+### 11.数字颠倒
+输入一个整数，将这个整数以字符串的形式逆序输出程序不考虑负数的
+情况，若数字含有0，则逆序形式也含有0，如输入为100，则输出为001。
+```Java
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        String res = "";
+        while (n > 10) {
+            int mod = n % 10;
+            res += mod;
+            n /= 10;
+        }
+        res = res + n;
+        System.out.println(res);
+    }
+}//input 1516000
+output 0006151
+```
+### 12.字符串反转
+写出一个程序，接受一个字符串，然后输出该字符串反转后的字符串。
+（字符串长度不超过1000）
+```Java
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        String str = in.nextLine();
+        System.out.println(reverse(str));
+    }
+    public static String reverse(String str) {
+        if (str.length() <= 1) return str;
+        String res = "";
+        for (int i = str.length() - 1; i >= 0; i--) {
+            res += str.charAt(i);
+        }
+        return res;
+    }
+}//input abcd
+output dcba
+```
+### 13.句子逆序
+将一个英文语句以单词为单位逆序排放。例如“I am a boy”，逆序排放后为“boy a am I”
+所有单词之间用一个空格隔开，语句中除了英文字母外，不再包含其他字符。
+```Java
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        String str = in.nextLine();
+        System.out.println(reverse(str));
+    }
+    public static String reverse(String sentence) {
+        if (sentence.length() <= 1) return sentence;
+        int index = 0;
+        while (index < sentence.length() && sentence.charAt(index) != ' ') {
+            index++;
+        }
+        if (index == sentence.length()) return sentence; //巧妙的处理了空格的问题
+        return reverse(sentence.substring(index + 1)) + sentence.charAt(index) + sentence.substring(0, index);
+    }
+}//Input I am a boy
+output boy a am I
+```
+### 14.字符串的连接最长路径查找
+给定n个字符串，请对n个字符串按照字典序排列。
+```Java
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.Collections;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int N = in.nextInt();
+        ArrayList<String> list = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            list.add(in.next());
+        }
+        Collections.sort(list); //String中实现了Comparable接口重写了compareTo方法
+        for (String str : list) {
+            System.out.println(str);
+        }
+    }
+}//input 2 cap to
+output cap to
+```
+### 15.求int型正整数在内存中存储时1的个数
+输入一个int型的正整数，计算出该int型数据在内存中存储时1的个数。
+```Java
+import java.util.Scanner;
+public class Main {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        System.out.println(get1Nums(n));
+        in.close();
+    }
+    
+    public static int get1Nums(int n) {
+        if (n < 2) return n & 1; //&操作取末位1
+        return (n & 1) + get1Nums(n >> 1);
+    }
+}//input 5
+output 2
+```
+[剑指15题]()
+```Java
+//上述get1Nums在输入负整数时会出错
+    public static int get1Nums(int n) {
+        int count = 0;
+        while (n > 0) {
+            count++;
+            n = n & (n - 1); // n中最后一位1右边的全部去掉了变为了0
+        }
+        return count;
+    }
+```
+### 16.购物单
+王强今天很开心，公司发给N元的年终奖。王强决定把年终奖用于购物，他把想买的物品分为
+两类：主件与附件，附件是从属于某个主件的，下表就是一些主件与附件的例子：
+* 主件	附件
+* 电脑	打印机，扫描仪
+* 书柜	图书
+* 书桌	台灯，文具
+* 工作椅	无
+
+如果要买归类为附件的物品，必须先买该附件所属的主件。每个主件可以有 0 个、 1 个或 2 个附件。附件不再有从属于自己的附件。王强想买的东西很多，为了不超出预算，他把每件物品规定了一个重要度，分为 5 等：用整数 1 ~ 5 表示，第 5 等最重要。他还从因特网上查到了每件物品的价格（都是 10 元的整数倍）。他希望在不超过 N 元（可以等于 N 元）的前提下，使每件物品的价格与重要度的乘积的总和最大。
+    设第 j 件物品的价格为 v[j] ，重要度为 w[j] ，共选中了 k 件物品，编号依次为 j 1 ， j 2 ，……， j k ，则所求的总和为：
+v[j 1 ]*w[j 1 ]+v[j 2 ]*w[j 2 ]+ … +v[j k ]*w[j k ] 。（其中 * 为乘号）
+    请你帮助王强设计一个满足要求的购物单。
+思路：依赖背包问题->分组背包问题，首先创建分组再每一个每组只会选择一种情况，转化为01背包问题。
+```Java
+//没有AC 改不动了 显示数组越界
+class Shop {
+    public static void main(String[] args) {
+        Scanner in = new Scanner(System.in);
+        int n = in.nextInt();
+        int m = in.nextInt();
+        Map<Integer, Integer>[] group = new Map[m + 1];
+        for(int i = 0; i < group.length; i++) {
+            group[i] = new HashMap<>();
+        }
+        for (int i = 1; i <= m; i++) {
+            int v = in.nextInt();
+            int p = in.nextInt();
+            int q = in.nextInt();
+            //分组
+            if (v <= n) {
+                if (q == 0) {
+                    group[i].put(v, v * p);
+                }
+                if (q != 0) {
+                    for (int k : group[q + 1].keySet()) {
+                        if (k + v <= n) {
+                            int value = group[q].get(k);
+                            group[q].put(k + v, v * p + value);
+                        }
+                    }
+                }
+            }
+        }
+        int[] dp = new int[n / 10];
+        dp[0] = 0;
+        for(int i = 1; i < group.length; i++) {
+            if (!group[i].isEmpty()) {
+                for (int k : group[i].keySet()) {
+                    for (int j = dp.length - 1; j >= k / 10; j--) {
+                        dp[j] = Math.max(dp[j], dp[j - k / 10] + group[i].get(k));
+                    }
+                }
+            }
+        }
+        System.out.println(dp[n / 10 - 1]);
+    }
+}
 ```
