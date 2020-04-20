@@ -46,8 +46,12 @@ class ModifyStatic {
 #### 静态代码块
 ```Java
 public class StaticKey {
-    public StaticKey() {
+    private int i = 9;
+    protected int j;
+    public StaticKey() { //i,j先于构造函数加载
         System.out.println("father constructor");
+        print(i+" "+j);
+        j = 39;
     }
     {
         System.out.println("father code block");
@@ -57,8 +61,10 @@ public class StaticKey {
     }
 }
 class Son extends StaticKey {
-    public Son() {
+    private int k = 47;
+    public Son() { //protected 继承访问 k先于构造函数加载
         System.out.println("son constructor");
+        print(j+" "+k);
     }
     {
         System.out.println("son code block");
@@ -67,17 +73,18 @@ class Son extends StaticKey {
         System.out.println("son static code block");
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) { //首先调用static main()->类加载
+        //该类具有父类先加载父类
         Son son = new Son();
     }
 
 }
-//father static code block
-son static code block
-father code block
-father constructor
+//father static code block //父类static变量->父类static代码块
+son static code block //子类static变量->子类static代码块
+father code block //父类代码块
+father constructor //i = 9, j = 0
 son code block
-son constructor
+son constructor //j = 39, k = 47
 ```
 类初始化顺序：父类static变量->父类static代码块->子类static变量->子类static代码块->
 父类普通变量->父类代码块->父类构造函数->子类普通变量->子类代码块->子类构造函数。
@@ -134,7 +141,7 @@ class A {
         
     }
 
-    /* 因为pblic修饰，子类可以继承到此方法，导致重写了父类的final方法，编译出错
+    /* 因为public修饰，子类可以继承到此方法，导致重写了父类的final方法，编译出错
     public final void getName() {
     
     }
@@ -144,4 +151,4 @@ class A {
 #### final类
 当用final修饰一个类时，表明这个类不能被继承。也就是说，如果一个类你永远不会让他被继承，
 就可以用final进行修饰。final类中的成员变量可以根据需要设为final，但是要注意final类中的
-所有成员方法都会被隐式地指定为final方法 。
+所有成员方法都会被隐式地指定为final方法。
