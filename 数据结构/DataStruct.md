@@ -10,5 +10,13 @@
 *
 ### [非线性结构]()
 * [树形结构]()
-	* [二叉搜索树BST](https://github.com/foooever/Java2020/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91BST/%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91BST.md)
+	* [二叉搜索树BST][1]
+	* [平衡二叉树AVL][2]
+	
+
+
+
+
+[1]:https://github.com/foooever/Java2020/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91BST/%E4%BA%8C%E5%8F%89%E6%90%9C%E7%B4%A2%E6%A0%91BST.md
+[2]:https://github.com/foooever/Java2020/blob/master/%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84/%E5%B9%B3%E8%A1%A1%E4%BA%8C%E5%8F%89%E6%A0%91AVL/AVL.md
 	
