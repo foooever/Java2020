@@ -316,6 +316,14 @@ public class Solution {
         
         return retCount;
     }
+    private class Node {
+        int xx;
+        int yy;
+        public Node(int xx, int yy) {
+            this.xx = xx;
+            this.yy = yy;
+        }
+    }
     //BFS
     private void BFS(int k, int xx, int yy, int rows, int cols) {
         Queue<Node> queue = new LinkedList<>();
