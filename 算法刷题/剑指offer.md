@@ -196,3 +196,291 @@ public boolean IsBalanced_Solution(TreeNode root) {
         return list;
     }
 ```
+### （剑指）剪绳子（20200508）
+描述：给你一根长度为n的绳子，请把绳子剪成整数长的m段（m、n都是整数，n>1并且m>1），每段绳子的长度记为k[0],k[1],...,k[m]。请问k[0]xk[1]x...xk[m]可能的最大乘积是多少？例如，当绳子的长度是8时，我们把它剪成长度分别为2、3、3的三段，此时得到的最大乘积是18。
+
+思路1：DP思路，后面绳子长度增加时，只需考虑`dp[j]*dp[i - j]`在后面`j`处砍一刀。
+```Java
+    public int cutRope(int target) {
+        //dp解法 m > 1缘故对于2.3长度的特殊处理
+        if (target < 2) return 0;
+        if (target == 2) return 1;
+        if (target == 3) return 2;
+        int[] dp = new int[target + 1];
+        dp[0] = 0;
+        dp[1] = 1;
+        dp[2] = 2;
+        dp[3] = 3;
+        for (int i = 4; i <= target; i++) {
+            for (int j = 1; j <= i / 2; j++) {
+                dp[i] = Math.max(dp[i], dp[j] * dp[i - j]);
+            }
+        }
+        return dp[target];
+    }
+```
+思路2：贪心算法，尽可能多的剪出长度为3的绳子，当最后剩余4是将其分为2×2。
+### （剑指）机器人的运动范围（20200509）
+描述：地上有一个m行和n列的方格。一个机器人从坐标0,0的格子开始移动，
+每一次只能向左，右，上，下四个方向移动一格，但是不能进入行坐标和列
+坐标的数位之和大于k的格子。 例如，当k为18时，机器人能够进入方格（35,37），因为3+5+3+7 = 18。但是，它不能进入方格（35,38）
+，因为3+5+3+8 = 19。请问该机器人能够达到多少个格子？
+
+思路：`boolean[][] flag`数组进行标记访问节点，分四个方向进行遍历。回溯法（相比递归某种程度上需要进行状态的恢复）
+```Java
+public class Solution {
+    private boolean[][] flag;
+    private int[][] action = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
+    public int movingCount(int threshold, int rows, int cols)
+    {
+        flag = new boolean[rows][cols];
+        moving(threshold, 0, 0, rows, cols);
+        int retCount = 0;
+        for (boolean[] f : flag) {
+            for (boolean ff : f) {
+                if (ff) {
+                    retCount++;
+                }
+            }
+        }
+        
+        return retCount;
+    }
+    
+    private void moving(int k, int xx, int yy, int rows, int cols) {
+        if (isValid(k, xx, yy, rows, cols)) {
+            if (flag[xx][yy]) {
+                return;
+            }
+            flag[xx][yy] = true;
+            for (int i = 0; i < 4; i++) {
+                int newX = xx + action[i][0];
+                int newY = yy + action[i][1];
+                moving(k, newX, newY, rows, cols);
+            }
+        }
+    }
+    
+    private boolean isValid(int k, int xx, int yy, int rows, int cols) {
+        if (xx < 0 || xx >= rows || yy < 0 || yy >= cols) {
+            return false;
+        }
+        if (countDigital(xx) + countDigital(yy) > k) {
+            return false;
+        }
+        return true;
+    }
+    
+    private int countDigital(int n) {
+        int count = 0;
+        while (n > 0) {
+            count += n % 10;
+            n /= 10;
+        }
+        return count;
+    }
+}
+```
+### 搜索算法（20200509）
+#### BFS && DFS
+BFS步骤
+* 1.从顶点开始，将顶点可达的进队
+* 2.出队，进行相关操作，在重复1中操作
+
+DFS步骤
+* 1.递归终止条件，如矩阵节点(9,9)或叶子节点(node.left == node.right == null)
+* 2.递归主体，搜索的方向，矩阵{上、右、下、左}或二叉树left & right
+* 3.针对回溯，进行标记`flag[x] = 1; DFS(x.left); flag[x] = 0`诸如此类 
+```Java
+public class Solution {
+    private boolean[][] flag;
+    private int[][] action = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
+    public int movingCount(int threshold, int rows, int cols)
+    {
+        if (threshold < 0) {
+            return 0;
+        }
+        flag = new boolean[rows][cols];
+        DFS(threshold, 0, 0, rows, cols);
+        if (!flag[0][0]) {
+            flag[0][0] = true;
+        }
+        int retCount = 0;
+        for (boolean[] f : flag) {
+            for (boolean ff : f) {
+                if (ff) {
+                    retCount++;
+                }
+            }
+        }
+        
+        return retCount;
+    }
+    //BFS
+    private void BFS(int k, int xx, int yy, int rows, int cols) {
+        Queue<Node> queue = new LinkedList<>();
+        flag[xx][yy] = true;
+        queue.add(new Node(xx, yy));
+        while (!queue.isEmpty()) {
+            Node node = queue.remove();
+            
+            for (int i = 0; i < 4; i++) {
+                int newX = node.xx + action[i][0];
+                int newY = node.yy + action[i][1];
+                if (isValid(k, newX, newY, rows, cols)){
+                    if (flag[newX][newY]) {
+                        continue;
+                    }
+                    flag[newX][newY] = true;
+                    queue.add(new Node(newX, newY));
+                }
+            }
+        }
+    }
+
+    //DFS
+    private void DFS(int k, int xx, int yy, int rows, int cols) {
+        //此时搜索的终止条件判断if flag[xx][yy] == flag[good_x][good_y] 递归终止条件
+        //可以进行相应操作
+        /*
+        if (flag[xx][yy]) {
+            return;
+        }*/
+
+        //遍历的方向，此时为4个方向
+        for (int i = 0; i < 4; i++) {
+            int newX = xx + action[i][0];
+            int newY = yy + action[i][1];
+            if (isValid(k, newX, newY, rows, cols)){
+                if (flag[newX][newY]) {
+                    continue;
+                }
+                //标记访问节点
+                flag[newX][newY] = true;
+                DFS(k, newX, newY, rows, cols);
+                //回溯状态，本题不需要恢复状态
+                //对于寻找路径的题型 flag[newX][newY] = false
+                
+            }
+        }
+    }
+    
+    private boolean isValid(int k, int xx, int yy, int rows, int cols) {
+        if (xx < 0 || xx >= rows || yy < 0 || yy >= cols) {
+            return false;
+        }
+        if (countDigital(xx) + countDigital(yy) > k) {
+            return false;
+        }
+        return true;
+    }
+    
+    private int countDigital(int n) {
+        int count = 0;
+        while (n > 0) {
+            count += n % 10;
+            n /= 10;
+        }
+        return count;
+    }
+}
+```
+### 单源最短路径（Dijkstra算法）
+```Java
+import java.util.Scanner;
+
+public class DijkstraAlgorithm {
+    private static int MaxValue = 100000;
+
+    public static void main(String[] args) {
+        Scanner input = new Scanner(System.in);
+        System.out.println("请输入顶点数和边数:");
+        //顶点数
+        int vertex = input.nextInt();
+        //边数
+        int edge = input.nextInt();
+
+        int[][] matrix = new int[vertex][vertex];
+
+        //初始化邻接矩阵
+        //邻接表的形式
+        for (int i = 0; i < vertex; i++) {
+            for (int j = 0; j < vertex; j++) {
+                matrix[i][j] = MaxValue;
+            }
+        }
+        for (int i = 0; i < edge; i++) {
+            int source = input.nextInt();
+            int target = input.nextInt();
+            int weight = input.nextInt();
+            matrix[source][target] = weight;
+        }
+
+        //单源最短路径，源点
+        int source = input.nextInt();
+        //调用dijstra算法计算最短路径
+        dijkstra(matrix, source);
+    }
+
+    //单源最短路径Dijkstra算法
+    //S:已经计算最短路径的节点
+    //T：未计算节点
+    //对于源点到T集合中的可达节点进行最短路径计算，(v0->vx)中间（v0->vk-vx）vk只能是S中节点
+    private static void dijkstra(int[][] matrix, int source) {
+        //最短路径长度
+        int[] shortest = new int[matrix.length];
+
+        //是否在S中，已经计算
+        int[] visited = new int[matrix.length];
+
+        //记录单源路径
+        String[] path = new String[matrix.length];
+
+        //initial path
+        for (int i = 0; i < matrix.length; i++) {
+            path[i] = new String(source + "->" + i);
+        }
+
+        shortest[source] = 0;
+        visited[source] = 1;
+
+        for (int i = 1; i < matrix.length; i++) {
+            int min = Integer.MAX_VALUE;
+            int index = -1; //每次选取最短路径节点加入故而index不会等于-1
+
+            for (int j = 0; j < matrix.length; j++) {
+                //针对未计算的节点visited[j] == 0
+                if (visited[j] == 0 && matrix[source][j] < min) {
+                    min = matrix[source][j];
+                    index = j;
+                }
+            }
+
+            //update route
+            shortest[index] = min;
+            visited[index] = 1;
+
+            //update index as internal node
+            //更新matrix中从源点到节点的最短路径
+            for (int m = 0; m < matrix.length; m++) {
+                if (visited[m] == 0 && matrix[source][index] + matrix[index][m] < matrix[source][m]) {
+                    matrix[source][m] = matrix[source][index] + matrix[index][m];
+                    path[m] = path[index] + "->" + m;
+                }
+            }
+        }
+
+        //打印最短路径
+        for (int i = 0; i < matrix.length; i++) {
+            if (i != source) {
+                if (shortest[i] == MaxValue) {
+                    System.out.println(source + "到" + i + "不可达");
+                } else {
+                    System.out.println(source + "到" + i + "的最短路径为：" + path[i] + "，最短距离是：" + shortest[i]);
+                }
+            }
+        }
+    }
+}
+
+```
