@@ -453,7 +453,7 @@ public class DijkstraAlgorithm {
         visited[source] = 1;
 
         for (int i = 1; i < matrix.length; i++) {
-            int min = Integer.MAX_VALUE;
+            int min = Integer.MAX_VALUE; //代表无路径
             int index = -1; //每次选取最短路径节点加入故而index不会等于-1
 
             for (int j = 0; j < matrix.length; j++) {
@@ -469,7 +469,7 @@ public class DijkstraAlgorithm {
             visited[index] = 1;
 
             //update index as internal node
-            //更新matrix中从源点到节点的最短路径
+            //更新T集合(visited[k] == 0)中从源点到节点的最短路径
             for (int m = 0; m < matrix.length; m++) {
                 if (visited[m] == 0 && matrix[source][index] + matrix[index][m] < matrix[source][m]) {
                     matrix[source][m] = matrix[source][index] + matrix[index][m];
@@ -490,5 +490,315 @@ public class DijkstraAlgorithm {
         }
     }
 }
-
 ```
+参考:https://blog.csdn.net/qq_34842671/article/details/90083037
+### 多源最短路径
+循环多次单源最短路径方法O(N^3)时间复杂度；另一种方法称为`Floyd`方法。\
+场景：计算城市之间的距离等情况。\
+思路：可以用BFS或者DFS进行遍历，终止条件为目标顶点。
+
+分析：对于两点之间最短距离，如果无中转节点，则其原来值为最小，现在可
+进行中转（a->b -- a->k1->k2->...->b其在ki为中转节点）。
+```Java
+//邻接矩阵初始化i == j <- 0 否则初始化为Integer.MAX_VALUE
+//若要存储路径，path[i][j]初始化为i，没进行一次e[i][j]更新则更新path[i][j] = path[k][j];
+for(k=1;k<=n;k++)
+    for(i=1;i<=n;i++)
+        for(j=1;j<=n;j++)
+            if(e[i][j]>e[i][k]+e[k][j])
+                e[i][j]=e[i][k]+e[k][j];
+```
+对于该方法`Floyd`计算单源最短路径只需要二层循环进行固定
+```Java
+    private static void floyd(int[][] matrix, int source) {
+        int[][] path = new int[matrix.length][matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix.length; j++) {
+                path[i][j] = i;
+            }
+        }
+        for (int k = 0; k < matrix.length; k++) {
+            //单源 source
+            for (int j = 0; j < matrix.length; j++) {
+                if (matrix[source][j] > matrix[source][k] + matrix[k][j]) {
+                    matrix[source][j] = matrix[source][k] + matrix[k][j];
+                    path[source][j] = path[k][j];
+                }
+            }
+        }
+        for (int i = 0; i < matrix.length; i++) {
+            if (i != source) {
+                System.out.print(source + "->");
+                int tmp = path[source][i];
+                while (tmp != 0) {
+                    System.out.print(tmp + "->");
+                    tmp = path[source][tmp];
+                }
+                System.out.print(i);
+                System.out.println("，最短路径为：" + matrix[source][i]);
+            }
+        }
+    }
+```
+参考：https://blog.csdn.net/LiuHuan_study/article/details/85411607
+### DAG及其应用
+#### AOV网（弧表示活动优先关系，顶点为活动）
+拓扑排序--可以用户判断是否有环（循环引用），或者任务调度的开始时间。
+```Java
+//拓扑排序
+    public static void topologicalSort(int[][] matrix) {
+        int[] inDegree = findInDegree(matrix);
+        System.out.println(Arrays.toString(inDegree));
+        Stack<Integer> stack = new Stack<>();
+        for (int i = 0; i < matrix.length; i++) {
+            if (inDegree[i] == 0) {
+                stack.push(i);
+            }
+        }
+
+        int count = 0;
+
+        while (!stack.isEmpty()) {
+            int top = stack.pop();
+            System.out.print(top + "->");
+            count++;
+
+            for (int i = 0; i < matrix[0].length; i++) {
+                if (matrix[top][i] < MaxValue && (--inDegree[i]) == 0) {
+                    stack.push(i);
+                }
+            }
+        }
+
+        if (count < matrix.length) {
+            System.out.println("error");
+        } else {
+            System.out.println("ok");
+        }
+
+    }
+
+    private static int[] findInDegree(int[][] matrix) {
+        int[] ret = new int[matrix.length];
+        for (int i = 0; i < matrix.length; i++) {
+            for (int j = 0; j < matrix[0].length; j++) {
+                if (matrix[i][j] < MaxValue) {
+                    ret[j]++;
+                }
+            }
+        }
+        return ret;
+    }
+```
+#### AOE网（顶点表示事件（之前的活动都结束），边表述活动）
+关键路径--路径长度最长的路径称之为关键路径，决定完成整个工程所需要的时间，(vi, vj)的最短路径为
+代表了vj事件最早发生事件，决定vj后继活动的最早发生时间。对于AOE网中活动ai(边)，`ete(i),lte(i)`分别表示
+活动ai的最早和最迟开始时间，`ete(i) = lte(i)`称为关键活动，关键路径上所有活动都是关键活动决定了工程的总时间。
+
+`etv(k), ltv(k)`表示节点（事件）的最早最晚发生时间。
+```Java
+//etv(k)计算
+if (k == 0) { etv(k) = 0}
+else etv(k) = max{etv(i) + len(vi, vk)} //vi表示存在边(vi, vk)的节点
+
+//ltv(k)
+if k = n - 1(最后一个节点) ltv(k) = etv(k)
+else ltv(k) = min{ltv(j) - len(vk, vj)} //vj表示从vk节点出发所到达节点
+```
+求解关键路径
+* 1.从源点v0出发，根据拓扑排序计算源点到汇点每个顶点的etv(事件最早发生时间)，若有环则无关键路径；
+* 2.从汇点出发， ltv[n - 1] =etv[n - 1]，按照逆拓扑排序计算每个节点的ltv；
+* 3.根据etv,ltv求每条边(ei)的ete,lte,若ete = lte 则为关键路径。
+```Java
+    //ete(v_i, v_k) = etv[i]; //节点i的最早开始时间
+    //lte(v_i, v_k) = ltv[k] - weight(v_i, v_k);
+```
+```Java
+import java.util.Stack;
+//边节点
+class EdgeNode {
+
+    public int adjvex; //邻接表结构adlist的(vi, vj)的vj顶点
+    public int weight; //边权
+    public EdgeNode next; //邻接表next
+
+    public EdgeNode(int adjevex, EdgeNode next) {
+        this.adjvex = adjevex;
+        this.next = next;
+    }
+
+    public EdgeNode(int adjevex, int weight, EdgeNode next) {
+        this.adjvex = adjevex;
+        this.weight = weight;
+        this.next = next;
+    }
+}
+
+//顶点节点
+class VertexNode {
+
+    public int in; //顶点入度
+    public Object data; //顶点
+    public EdgeNode firstedge; //邻接表头节点
+
+    public VertexNode(Object data, int in, EdgeNode firstedge) {
+        this.data = data;
+        this.in = in;
+        this.firstedge = firstedge;
+    }
+}
+
+public class CriticalPathSort {
+
+    int[] etv, ltv; //事件的最早最晚开始时间
+    Stack stack = new Stack(); //存储入度为0的顶点，便于每次寻找入度为0的顶点时都遍历整个邻接表
+    Stack stack2 = new Stack(); //将顶点序号压入拓扑序列的栈
+    static VertexNode[] adjList; //邻接表
+
+
+
+    public boolean TopologicalSort() {
+        EdgeNode e;
+        int k, top;
+        int count = 0;
+        etv = new int[adjList.length];
+        for (int i = 0; i < adjList.length; i++) {
+            if(adjList[i].in == 0) {
+                stack.push(i);
+            }
+        }
+
+        //初始化etv--最早开始时间
+        //前驱节点+前驱节点到目标节点权值和中最大的一个（必须等前驱节点全部完成）
+        for (int i = 0; i < adjList.length; i++) {
+            etv[i] = 0;
+        }
+
+        while(!stack.isEmpty()) {
+            top = (int) stack.pop();
+            count++;
+            stack2.push(top); //记录topologicalSort
+            for (e = adjList[top].firstedge; e != null; e = e.next) {
+                k = e.adjvex;
+                if((--adjList[k].in) == 0) {
+                    stack.push(k);
+                }
+
+                //进行更新etv的值
+                //etv[k] = max{etv[top] + weight(v_top, v_k)}
+                if(etv[top] + e.weight > etv[k]) {
+                    etv[k] = etv[top] + e.weight;
+                }
+            }
+        }
+
+        //topologicalSort的应用之一，判断工程是否有环，可以顺利实施？
+        if(count < adjList.length) return false;
+        else return true;
+
+    }
+
+
+    public void CriticalPath() {
+        EdgeNode e;
+        int top, k;
+        int ete, lte;
+        if(!this.TopologicalSort()) {
+            System.out.println("该网中存在回路!");
+            return;
+        }
+
+        //topologicalSort逆序（先进后出stack2中存放）计算ltv
+        ltv = new int[adjList.length];
+        for (int i = 0; i < adjList.length; i++) {
+            ltv[i] = etv[etv.length - 1];
+        }
+
+        //更新ltv
+        //ltv[top] = min{ltv[k] - weight(v_top, v_k)}
+        //v_top -> v_k weight = weight(v_top, v_k)在v_top的邻接链表中
+        //后继节点开始取决于当前节点，故而当前节点最晚开始时间是后继节点ltv-weight(当前， 后继)中最小的值
+        while(!stack2.isEmpty()) {
+            top = (int) stack2.pop();
+            for(e = adjList[top].firstedge; e != null; e = e.next) {
+                k = e.adjvex;
+                if(ltv[k] - e.weight < ltv[top]) {
+                    ltv[top] = ltv[k] - e.weight;
+                }
+            }
+        }
+
+        //ete(v_i, v_k) = etv[i]; //节点i的最早开始时间
+        //lte(v_i, v_k) = ltv[k] - weight(v_i, v_k);
+        for (int i = 0; i < adjList.length; i++) {
+            for(e = adjList[i].firstedge; e != null; e = e.next) {
+                k = e.adjvex;
+                ete = etv[i];
+                lte = ltv[k] - e.weight;
+                if(ete == lte) {
+                    System.out.print("<" + adjList[i].data + "," + adjList[k].data + "> length: " + e.weight + ",");
+                }
+            }
+        }
+    }
+
+    //获取单个节点的邻接链表最后一个节点
+    public static EdgeNode getAdjvex(VertexNode node) {
+        EdgeNode e = node.firstedge;
+        while(e != null) {
+            if(e.next == null) break;
+            else
+                e = e.next;
+        }
+        return e;
+    }
+
+    public static void main(String[] args) {
+        int[] ins = {0, 1, 1, 2, 2, 1, 1, 2, 1, 2};
+        int[][] adjvexs = {
+                {2, 1},
+                {4, 3},
+                {5, 3},
+                {4},
+                {7, 6},
+                {7},
+                {9},
+                {8},
+                {9},
+                {}
+        };
+        int[][] widths = {
+                {4, 3},
+                {6, 5},
+                {7, 8},
+                {3},
+                {4, 9},
+                {6},
+                {2},
+                {5},
+                {3},
+                {}
+        };
+
+        //创建邻接表
+        adjList = new VertexNode[ins.length];
+        for (int i = 0; i < ins.length; i++) {
+            adjList[i] = new VertexNode("V"+i, ins[i],null);
+            if(adjvexs[i].length > 0) {
+                for (int j = 0; j < adjvexs[i].length; j++) {
+                    if(adjList[i].firstedge == null)
+                        adjList[i].firstedge = new EdgeNode(adjvexs[i][j], widths[i][j], null);
+                    else {
+                        getAdjvex(adjList[i]).next = new EdgeNode(adjvexs[i][j], widths[i][j], null);
+                    }
+                }
+            }
+        }
+
+        CriticalPathSort c = new CriticalPathSort();
+        c.CriticalPath();
+
+    }
+}
+```
+参考：https://www.cnblogs.com/lishanlei/p/10707808.html
