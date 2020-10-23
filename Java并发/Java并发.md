@@ -145,7 +145,7 @@ public class SingleThreadExecutorTest {
 
 ### 7.synchronized（当前对象锁）重量级锁
 修饰静态方法锁.class文件--monitor,monitorexit
-```
+```Java
 //双重校验锁实现对象单例（线程安全）
 //在多个线程试图在同一时间创建对象时，会通过加锁来保证只有一个线程能创建对象。
 //在对象创建好之后，执行getInstance()将不需要获取锁，直接返回已创建好的对象。
@@ -178,7 +178,7 @@ public class Singleton {
 很多 synchronized 里面的代码只是一些很简单的代码，执行时间非常快，此时等待的线
 程都加锁可能是一种不太值得的操作，因为线程阻塞涉及到用户态和内核态切换的问题。
 既然 synchronized 里面的代码执行得非常快，不妨让等待锁的线程不要被阻塞，而是在 synchronized 的边界做忙循环，这就是自旋。如果做了多次循环发现还没有获得锁，再阻塞，这样可能是一种更好的策略。
-```
+```Java
 public class SpinLock {
     private AtomicReference<Thread> owner =new AtomicReference<>();
     public void lock(){
