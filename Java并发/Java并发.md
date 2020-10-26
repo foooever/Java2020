@@ -13,25 +13,74 @@ Thread.join()，Thread.yield()，LockSupport.park()`
 * 减少线程上下文切换：1）无锁并发编程，多线程竞争锁会引起上下文切换，避免使用锁，改变竞态条件；2）CAS算法
 ，如`AtomicInteger`等原子类采用CAS更新数据，线程无需阻塞；3）使用最少线程，避免创建过多线程；
 4）协程，一种程序
-### 1.并发优缺点
-* 优点：多核CPU的计算能力和业务拆分
-* 缺点：引起并发问题，安全性问题、活跃性问题（死锁、饥饿、活锁）、性能问题（上下文切换）
+### 1.2并发编程多线程的优势
+* 多核多CPU系统，并发程序通过提高处理器资源利用率来提升**系统吞吐率**
+* 日渐复杂的业务请求，将每一个类似socket连接请求分配给一个线程进行处理，互不影响
+### 2.并发带来的问题
+#### 2.1安全性问题
+在没有同步控制的情况下，多个线程的执行顺序是不可预测的，`UnsafeSequence`导致结果不同，
+线程交替执行使得结果和预期的不尽相同。
 
-并发三要素：原子性、可见性（volatile、synchronized）、有序性。
+**竞态条件**：计算的正确性取决于多个线程的交替执行时序，不同时序会造成不同结果，最为常
+见的是先检查后执行（check-then-act），基于一种可能失效的观察结果来做出判断后者执行某个计算。
+#### 2.2活跃性问题
+由于是线程进行切换，并且存在**竞争**，当某个操作或者线程无法继续执行就发生了活跃性问题。
+* 死锁：两个（及以上）的线程在执行过程中，由于资源竞争而造成的一种阻塞等待的现象，若无外力推动
+会陷入无限等待，产生了死锁。死锁条件：1）互斥资源；2）请求和保持，阻塞对获取资源保持不放；
+```Java
+public class DeadLock {
+    public static String obj1 = "obj1";
+    public static String obj2 = "obj2";
+    public static void main(String[] args) {
+        Thread a = new Lock1();
+        Thread b = new Thread(new Lock2());
+        a.start();
+        b.start();
+    }
+}
+class Lock1 extends Thread {
+    @Override
+    public void run() {
+        try {
+            System.out.println("lock1......");
+            synchronized (DeadLock.obj1) {
+                System.out.println("lock " + DeadLock.obj1);
+                Thread.sleep(3000);
 
-进程是操作系统资源分配的基本单位，而线程是处理器任务调度和执行的基本单位
+                synchronized (DeadLock.obj2) {
+                    System.out.println("lock " + DeadLock.obj2);
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+class Lock2 implements Runnable {
+    @Override
+    public void run() {
+        try {
+            System.out.println("lock1......");
+            synchronized (DeadLock.obj2) {
+                System.out.println("lock " + DeadLock.obj2);
+                Thread.sleep(3000);
 
-### 2.死锁
-死锁是指两个或两个以上的进程（线程）在执行过程中，由于竞争资源或者由于彼此通信而造成的一种阻塞的现象，
-若无外力作用，它们都将无法推进下去。此时称系统处于死锁状态或系统产生了死锁，这些永远在互相等待的进程
-（线程）称为死锁进程（线程）。
-
-死锁条件：
-* 互斥资源
-* 请求与保持，阻塞对获得资源保持不放
-* 不剥夺，只有自己使用完毕才会释放资源
-* 循环等待，当死锁发生，所等待线程形成环路，造成永久阻塞
-
+                synchronized (DeadLock.obj1) {
+                    System.out.println("lock " + DeadLock.obj1);
+                }
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+}
+```
+3）不剥夺，只有使用完毕才释放资源；4）循环等待，死锁发生时，所等待线程陷入循环等待；
+* 饥饿：如果一个线程因为 CPU 时间全部被其他线程抢走而得不到 CPU 运行时间，这种状态被称之
+为“饥饿”。饥饿原因：1）高优先级线程占用所有CPU时间；2）线程阻塞等待某一同步块，但其他线程持续的
+对同步块进行访问；3）线程本身等待一个本身也处于永久等待的对象；
+* 活锁：两个线程之间互相谦让，让其他线程优先使用资源，互相谦让。
+ 
 ### 3.创建线程方式（6种）
 #### 1.继承`Thread`类，重写`run()`方法为线程的业务逻辑，`start()`启动线程
 ```Java
